@@ -1,0 +1,34 @@
+# ==============================================================================
+# HunyuanImage-3.0 Docker镜像依赖
+# ==============================================================================
+
+# 核心框架
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.0
+
+# 图像处理
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# 科学计算
+numpy>=1.24.0
+scipy>=1.11.0
+
+# HuggingFace相关
+transformers>=4.40.0
+diffusers>=0.27.0
+accelerate>=0.30.0
+safetensors>=0.4.0
+
+# 其他工具
+requests>=2.31.0
+tqdm>=4.66.0
+omegaconf>=2.3.0
+
+# 可选：性能优化
+# flash-attn==2.8.3  # 将在Dockerfile中单独安装
+# flashinfer           # 将在Dockerfile中单独安装
+
+# 注：PyTorch和torchvision已在Dockerfile中通过CUDA版本安装
+# 注：腾讯云SDK已在Dockerfile中单独安装

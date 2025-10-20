@@ -1,0 +1,54 @@
+# Docker构建时忽略的文件
+
+# 文档
+*.md
+README*
+LICENSE
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.log
+*.bak
+
+# Docker相关
+docker-compose.yml
+.dockerignore
+
+# 输出目录
+outputs/
+hunyuan_data/
+
+# 测试文件
+test_*
+*_test.py
+
+# OS
+.DS_Store
+Thumbs.db
