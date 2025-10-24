@@ -17,7 +17,12 @@ WORKDIR /app
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
-    python3.10 \
+    software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update && apt-get install -y \
+    python3.12 \
+    python3.12-dev \
+    python3.12-distutils \
     python3-pip \
     git \
     wget \
@@ -27,6 +32,10 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
+
+# 设置Python 3.12为默认版本
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
+    && update-alternatives --set python3 /usr/bin/python3.12
 
 # 升级pip
 RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel

@@ -135,10 +135,56 @@ def test_generate_auto_size():
         print()
         return False
 
+def test_generate_advanced_params():
+    """测试高级参数（bot_task等）"""
+    print("=" * 60)
+    print("测试4: 高级参数测试")
+    print("=" * 60)
+
+    payload = {
+        "prompt": "一只可爱的小猫在草地上玩耍",
+        "image_size": "512x512",
+        "diff_infer_steps": 20,
+        "seed": 999,
+        "bot_task": "image",  # 测试新参数
+        "use_system_prompt": False,
+        "verbose": True
+    }
+
+    print(f"请求参数: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+    print()
+
+    try:
+        print("发送请求...")
+        start_time = time.time()
+
+        response = requests.post(
+            f"{API_BASE_URL}/generate",
+            json=payload,
+            timeout=300
+        )
+        response.raise_for_status()
+
+        elapsed = time.time() - start_time
+        data = response.json()
+
+        print(f"✓ 生成成功！")
+        print(f"✓ 任务ID: {data['task_id']}")
+        print(f"✓ bot_task参数: {data['parameters'].get('bot_task', 'N/A')}")
+        print(f"✓ 耗时: {elapsed:.1f}秒")
+        print()
+
+        return True
+
+    except Exception as e:
+        print(f"✗ 生成失败: {e}")
+        print()
+        return False
+
 def test_generate_with_seed():
     """测试种子可复现性"""
     print("=" * 60)
-    print("测试4: 种子可复现性测试")
+    print("测试5: 种子可复现性测试")
     print("=" * 60)
 
     payload = {
@@ -219,6 +265,7 @@ def main():
     results.append(("健康检查", test_health()))
     results.append(("基本生成", test_generate_basic()))
     results.append(("自动尺寸", test_generate_auto_size()))
+    results.append(("高级参数", test_generate_advanced_params()))
     results.append(("种子可复现", test_generate_with_seed()))
 
     # 汇总结果

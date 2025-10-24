@@ -50,7 +50,11 @@ class GenerateRequest(BaseModel):
     height: Optional[int] = Field(1024, description="图片高度", ge=512, le=2048)
     diff_infer_steps: Optional[int] = Field(50, description="推理步数（扩散步数）", ge=1, le=100)
     seed: Optional[int] = Field(None, description="随机种子（可选，用于可复现生成）")
-    image_size: Optional[str] = Field(None, description="图片尺寸（可选：'auto', '1024x1024', '16:9'等，优先级高于width/height）")
+    image_size: Optional[str] = Field("auto", description="图片尺寸（可选：'auto', '1024x1024', '16:9'等，优先级高于width/height）")
+    bot_task: Optional[str] = Field("auto", description="任务类型：image, auto, think, recaption")
+    use_system_prompt: Optional[bool] = Field(False, description="是否使用系统提示词")
+    system_prompt: Optional[str] = Field(None, description="自定义系统提示词")
+    verbose: Optional[bool] = Field(True, description="是否显示详细进度信息")
     return_base64: Optional[bool] = Field(False, description="是否返回base64编码的图片")
 
 class GenerateResponse(BaseModel):
@@ -88,7 +92,7 @@ def load_model():
 
     try:
         import torch
-        from transformers import AutoModelForCausalLM
+        from hunyuan_image_3.hunyuan import HunyuanImage3ForCausalMM
 
         # 检查FlashAttention和FlashInfer是否可用
         try:
@@ -109,14 +113,13 @@ def load_model():
 
         # 加载模型
         logger.info("正在加载模型权重，这可能需要几分钟...")
-        pipeline = AutoModelForCausalLM.from_pretrained(
-            MODEL_PATH,
+        kwargs = dict(
             attn_implementation=attn_impl,
-            trust_remote_code=True,
             torch_dtype="auto",
             device_map="auto",  # 自动分配到多GPU
             moe_impl=moe_impl
         )
+        pipeline = HunyuanImage3ForCausalMM.from_pretrained(MODEL_PATH, **kwargs)
 
         # 加载tokenizer
         logger.info("正在加载tokenizer...")
@@ -245,14 +248,18 @@ async def generate_image(request: GenerateRequest, background_tasks: BackgroundT
             else:
                 image_size = f"{request.width}x{request.height}"
 
-            logger.info(f"任务 {task_id}: 生成参数 - 尺寸:{image_size}, 步数:{request.diff_infer_steps}, 种子:{request.seed}")
+            logger.info(f"任务 {task_id}: 生成参数 - 尺寸:{image_size}, 步数:{request.diff_infer_steps}, 种子:{request.seed}, 任务类型:{request.bot_task}")
 
             # 使用HunyuanImage-3.0的generate_image方法
             image = pipeline.generate_image(
                 prompt=request.prompt,
-                diff_infer_steps=request.diff_infer_steps,
-                image_size=image_size,
                 seed=request.seed,
+                image_size=image_size,
+                diff_infer_steps=request.diff_infer_steps,
+                bot_task=request.bot_task,
+                use_system_prompt=request.use_system_prompt,
+                system_prompt=request.system_prompt,
+                verbose=request.verbose,
                 stream=True  # 显示进度
             )
 
@@ -273,7 +280,10 @@ async def generate_image(request: GenerateRequest, background_tasks: BackgroundT
             "parameters": {
                 "image_size": image_size,
                 "diff_infer_steps": request.diff_infer_steps,
-                "seed": request.seed
+                "seed": request.seed,
+                "bot_task": request.bot_task,
+                "use_system_prompt": request.use_system_prompt,
+                "verbose": request.verbose
             },
             "timestamp": timestamp
         }

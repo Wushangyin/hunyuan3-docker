@@ -213,11 +213,15 @@ curl -X POST http://localhost:8000/generate \
 | 参数 | 类型 | 必填 | 说明 | 默认值 |
 |------|------|------|------|--------|
 | `prompt` | string | ✅ | 文本提示词（中英文均可） | - |
-| `image_size` | string | ❌ | 图片尺寸 | "1024x1024" |
+| `image_size` | string | ❌ | 图片尺寸 | "auto" |
 | `width` | int | ❌ | 图片宽度 (512-2048) | 1024 |
 | `height` | int | ❌ | 图片高度 (512-2048) | 1024 |
 | `diff_infer_steps` | int | ❌ | 推理步数 (1-100) | 50 |
 | `seed` | int | ❌ | 随机种子（可复现） | 随机 |
+| `bot_task` | string | ❌ | 任务类型 (image/auto/think/recaption) | "auto" |
+| `use_system_prompt` | bool | ❌ | 是否使用系统提示词 | false |
+| `system_prompt` | string | ❌ | 自定义系统提示词 | null |
+| `verbose` | bool | ❌ | 显示详细进度信息 | true |
 | `return_base64` | bool | ❌ | 返回base64编码 | false |
 
 **图片尺寸选项**：
@@ -637,8 +641,60 @@ server {
 
 ## 版本信息
 
-- **文档版本**: 1.0.0
-- **更新日期**: 2025-10-20
+- **文档版本**: 1.1.0
+- **更新日期**: 2025-10-23
 - **模型版本**: HunyuanImage-3.0
 - **Docker镜像**: hunyuan-image-3.0:latest
+
+---
+
+## 变更日志
+
+### v1.1.0 (2025-10-23) - 兼容性修复
+
+**修复内容**：
+
+1. **Python版本升级**
+   - 从 Python 3.10 升级到 Python 3.12（官方推荐版本）
+   - 添加 deadsnakes PPA 源支持
+   - 确保与官方要求完全匹配
+
+2. **模型加载方式修复** ⚠️ **关键修复**
+   - 修复模型导入：`AutoModelForCausalLM` → `HunyuanImage3ForCausalMM`
+   - 使用官方正确的模型类：`from hunyuan_image_3.hunyuan import HunyuanImage3ForCausalMM`
+   - 这是最关键的修复，之前的方式会导致模型无法加载
+
+3. **API参数增强**
+   - 新增 `bot_task` 参数：支持 image/auto/think/recaption 任务类型
+   - 新增 `use_system_prompt` 参数：启用系统提示词功能
+   - 新增 `system_prompt` 参数：自定义系统提示词
+   - 新增 `verbose` 参数：控制详细进度显示
+   - 更新 `image_size` 默认值为 "auto"（自动选择最佳尺寸）
+
+4. **测试套件更新**
+   - 添加高级参数测试用例
+   - 测试新增的 bot_task 等参数
+   - 从4个测试增加到5个测试
+
+**影响**：
+- ✅ 修复后的Docker镜像可以正常运行（不考虑硬件限制）
+- ✅ 完全符合 HunyuanImage-3.0 官方要求
+- ✅ API功能更加完善，支持更多官方特性
+
+**升级建议**：
+如果您之前构建过镜像，请重新构建以应用这些修复：
+```bash
+# 删除旧镜像
+docker rmi hunyuan-image-3.0:latest
+
+# 重新构建
+docker build -t hunyuan-image-3.0:latest .
+```
+
+### v1.0.0 (2025-10-20) - 初始版本
+
+- 基础Docker化部署方案
+- FastAPI REST API服务
+- 多GPU支持
+- 基本测试套件
 
