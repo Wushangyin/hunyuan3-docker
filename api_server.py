@@ -92,7 +92,7 @@ def load_model():
 
     try:
         import torch
-        from hunyuan_image_3.hunyuan import HunyuanImage3ForCausalMM
+        from transformers import AutoModelForCausalLM
 
         # 检查FlashAttention和FlashInfer是否可用
         try:
@@ -111,15 +111,16 @@ def load_model():
             moe_impl = "eager"
             logger.info("FlashInfer未安装，使用eager（速度较慢）")
 
-        # 加载模型
+        # 加载模型（使用官方推荐方式）
         logger.info("正在加载模型权重，这可能需要几分钟...")
         kwargs = dict(
+            trust_remote_code=True,  # 官方要求的关键参数
             attn_implementation=attn_impl,
             torch_dtype="auto",
             device_map="auto",  # 自动分配到多GPU
             moe_impl=moe_impl
         )
-        pipeline = HunyuanImage3ForCausalMM.from_pretrained(MODEL_PATH, **kwargs)
+        pipeline = AutoModelForCausalLM.from_pretrained(MODEL_PATH, **kwargs)
 
         # 加载tokenizer
         logger.info("正在加载tokenizer...")
