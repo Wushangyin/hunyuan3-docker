@@ -22,8 +22,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get update && apt-get install -y \
     python3.12 \
     python3.12-dev \
-    python3.12-distutils \
-    python3-pip \
+    python3.12-venv \
     git \
     wget \
     curl \
@@ -37,8 +36,9 @@ RUN apt-get update && apt-get install -y \
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
     && update-alternatives --set python3 /usr/bin/python3.12
 
-# 升级pip
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
+# 为Python 3.12安装pip并升级
+RUN python3.12 -m ensurepip --upgrade \
+    && python3.12 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # 安装PyTorch with CUDA 12.8
 RUN pip3 install --no-cache-dir \
